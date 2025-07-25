@@ -5,7 +5,7 @@ var priority: int = 0
 var base: Variant:
 	set(v):
 		base = v
-		_dirty = false
+		_dirty = true
 var value: Variant:
 	get:
 		if _dirty or not value:
@@ -13,9 +13,9 @@ var value: Variant:
 			_dirty = false
 		return value
 
-var _dirty: bool = false
+var _dirty: bool = true
 
-func _init(_base: Variant) -> void:
+func _init(_base: Variant = 0) -> void:
 	base = _base
 	flush()
 
@@ -27,10 +27,10 @@ func _fill(start_value: Variant) -> Variant:
 			var b: Variant = c.base
 			var group: Variant = c._fill(c.base)
 			c.base = group
-			start_value = c.effect.call(start_value)
+			start_value = c.effect(start_value)
 			c.base = b
 		else:
-			start_value = c.effect.call(start_value)
+			start_value = c.effect(start_value)
 	return start_value
 
 func effect(_value: Variant) -> Variant: return _value
@@ -44,10 +44,12 @@ func flush() -> void:
 func add(coupling: Pipe) -> bool:
 	if couplings.find(coupling) == -1: return false
 	couplings.push_back(coupling)
+	_dirty = true
 	return true
 
 func remove(coupling: Pipe) -> bool:
 	var index := couplings.find(coupling)
 	if index != -1:
 		couplings.remove_at(index)
+	_dirty = true
 	return index != -1
